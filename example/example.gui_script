@@ -17,4 +17,24 @@ function init(self)
 	print("Easing Outsine 0-100, 50%", tweener.ease(gui.EASING_OUTSINE, 0, 100, 1, 0.5))
 	print("Easing Outsine 0-100, 75%", tweener.ease(gui.EASING_OUTSINE, 0, 100, 1, 0.75))
 	print("Easing Outsine 0-100, 100%", tweener.ease(gui.EASING_OUTSINE, 0, 100, 1, 1))
+
+	local box = gui.get_node("box")
+	local box_pos = gui.get_position(box)
+
+	local current_time = socket.gettime()
+	tweener.tween(tweener.outsine, 75, 885, 2.4, function(value, is_final_call)
+		box_pos.x = value
+		gui.set_position(box, box_pos)
+
+		if is_final_call then
+			print("Tween took", socket.gettime() - current_time)
+		end
+	end)
+
+	timer.delay(2.4, false, function()
+		gui.set_scale(box, vmath.vector3(1.25, 1.25, 1))
+		gui.animate(box, "scale", vmath.vector3(1, 1, 1), gui.EASING_OUTBOUNCE, 0.5)
+
+		print("Timer took", socket.gettime() - current_time)
+	end)
 end

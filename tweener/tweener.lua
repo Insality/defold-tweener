@@ -16,8 +16,12 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	easing_function = M.DEFOLD_EASINGS[easing_function] or easing_function
 
 	local time_elapsed = 0
+	local latest_time = socket.gettime()
+
 	local timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
-		time_elapsed = time_elapsed + dt
+		local current_time = socket.gettime()
+		time_elapsed = time_elapsed + (current_time - latest_time)
+		latest_time = current_time
 
 		if time_elapsed >= time then
 			timer.cancel(handle)
