@@ -22,10 +22,10 @@
 
 Open your `game.project` file and add the following line to the dependencies field under the project section:
 
-**[Tweener v1](https://github.com/Insality/defold-tweener/archive/refs/tags/1.zip)**
+**[Tweener v2](https://github.com/Insality/defold-tweener/archive/refs/tags/2.zip)**
 
 ```
-https://github.com/Insality/defold-tweener/archive/refs/tags/1.zip
+https://github.com/Insality/defold-tweener/archive/refs/tags/2.zip
 ```
 
 Size: **5.47 KB**
@@ -193,6 +193,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Issues and suggestions
 
 If you have any issues, questions or suggestions please [create an issue](https://github.com/Insality/defold-tweener/issues).
+
+
+## Changelog
+
+**v2**
+- Changed timer `delta time` to `socket.gettime` for more precise tweening
+
+**v1**
+- Initial release
 
 
 ## ❤️ Support project ❤️
