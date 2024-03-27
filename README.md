@@ -195,13 +195,29 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 If you have any issues, questions or suggestions please [create an issue](https://github.com/Insality/defold-tweener/issues).
 
 
+## 👏 Contributors
+
+<a href="https://github.com/Insality/defold-tweener/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=insality/defold-tweener"/>
+</a>
+
+
 ## Changelog
 
-**v2**
-- Changed timer `delta time` to `socket.gettime` for more precise tweening
+### **V1**
+<details>
+	<summary><b>Changelog</b></summary>
 
-**v1**
-- Initial release
+	- Initial release
+</details>
+
+
+### **V2**
+<details>
+	<summary><b>Changelog</b></summary>
+
+	- Changed timer `delta time` to `socket.gettime` for more precise tweening
+</details>
 
 
 ## ❤️ Support project ❤️
