@@ -28,7 +28,15 @@ Open your `game.project` file and add the following line to the dependencies fie
 https://github.com/Insality/defold-tweener/archive/refs/tags/2.zip
 ```
 
-Size: **5.47 KB**
+### Library Size
+
+> **Note:** The library size is calculated based on the build report per platform
+
+| Platform         | Library Size |
+| ---------------- | ------------ |
+| HTML5            | **2.38 KB**  |
+| Desktop / Mobile | **5.55 KB**  |
+
 
 ### Global Update Frequency
 
