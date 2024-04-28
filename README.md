@@ -49,7 +49,16 @@ Add next `tweener` section to your `game.project` in text mode:
 update_frequency = 60
 ```
 
-## API
+## API Reference
+
+### Quick API Reference
+
+```lua
+local tween_function = tweener.linear or go.EASING_LINEAR or gui.EASING_LINEAR
+
+tweener.tween(tween_function, from, to, time, callback, [dt])
+tweener.ease(tween_function, from, to, time, time_elapsed)
+```
 
 ### Importing the Module
 
