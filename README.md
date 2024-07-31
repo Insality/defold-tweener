@@ -17,6 +17,7 @@
 - **Easing Functions**: Provides a set of easing functions for different types of easings.
 - **Custom Update Frequency**: Option to define update frequency for the tween.
 - **Callbacks**: Callbacks for each tween update.
+- **Custom Easings**: Support for custom easing functions.
 
 ## Setup
 
