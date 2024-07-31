@@ -22,7 +22,8 @@ function init(self)
 	local box_pos = gui.get_position(box)
 
 	local current_time = socket.gettime()
-	tweener.tween(tweener.outsine, 75, 885, 2.4, function(value, is_final_call)
+	local custom_easing = {0, 0.4, 0.5, 0.6, 0.5, 0.4, 0.5, 0.6, 1}
+	tweener.tween(custom_easing, 75, 885, 2.4, function(value, is_final_call)
 		box_pos.x = value
 		gui.set_position(box, box_pos)
 

@@ -1,8 +1,10 @@
 ![](media/logo.png)
 
-[![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/insality) [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/insality) [![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/insality)
-
 [![GitHub release (latest by date)](https://img.shields.io/github/v/tag/insality/defold-tweener?style=for-the-badge&label=Release)](https://github.com/Insality/defold-tweener/tags)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/insality/defold-tweener/ci-workflow.yml?branch=master&style=for-the-badge)](https://github.com/Insality/defold-tweener/actions)
+[![codecov](https://img.shields.io/codecov/c/github/Insality/defold-tweener?style=for-the-badge)](https://codecov.io/gh/Insality/defold-tweener)
+
+[![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/insality) [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/insality) [![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/insality)
 
 
 # Tweener
@@ -22,10 +24,10 @@
 
 Open your `game.project` file and add the following line to the dependencies field under the project section:
 
-**[Tweener v2](https://github.com/Insality/defold-tweener/archive/refs/tags/2.zip)**
+**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/3.zip)**
 
 ```
-https://github.com/Insality/defold-tweener/archive/refs/tags/2.zip
+https://github.com/Insality/defold-tweener/archive/refs/tags/3.zip
 ```
 
 ### Library Size
@@ -34,8 +36,8 @@ https://github.com/Insality/defold-tweener/archive/refs/tags/2.zip
 
 | Platform         | Library Size |
 | ---------------- | ------------ |
-| HTML5            | **2.38 KB**  |
-| Desktop / Mobile | **5.55 KB**  |
+| HTML5            | **3.28 KB**  |
+| Desktop / Mobile | **6.21 KB**  |
 
 
 ### Global Update Frequency
@@ -54,7 +56,7 @@ update_frequency = 60
 ### Quick API Reference
 
 ```lua
-local tween_function = tweener.linear or go.EASING_LINEAR or gui.EASING_LINEAR
+local tween_function = tweener.linear or go.EASING_LINEAR or gui.EASING_LINEAR or {0, 0.2, 0.4, 0.8, 0.9, 1}
 
 tweener.tween(tween_function, from, to, time, callback, [dt])
 tweener.ease(tween_function, from, to, time, time_elapsed)
@@ -81,7 +83,7 @@ tweener.tween(tween_function, from, to, time, callback, [dt])
 This function initiates a tween operation immediately. Here's how to use it:
 
 - **Parameters:**
-  - `tween_function`: The tween function.
+  - `tween_function`: The tween function. You can use one of the predefined easing functions or provide a custom one.
   - `from`: The starting value of the tween.
   - `to`: The ending value of the tween.
   - `time`: The duration of the tween, in seconds.
@@ -94,7 +96,15 @@ This function initiates a tween operation immediately. Here's how to use it:
 - **Usage Example:**
 
 ```lua
+tweener.tween(tweener.linear, 0, 100, 1.5, function(value, is_final_call)
+	print("Tween value: " .. value)
+end)
+
 tweener.tween(go.EASING_OUTSINE, 0, 100, 1.5, function(value, is_final_call)
+	print("Tween value: " .. value)
+end)
+
+tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
 ```
@@ -119,6 +129,12 @@ This function calculates the value of the tween at a specific point in time, bas
 
 ```lua
 local value = tweener.ease(tweener.inquad, 0, 100, 1.5, 0.75)
+print("The tween value at halfway point is: ", value)
+
+local value = tweener.ease(gui.EASING_OUTSINE, 0, 100, 1.5, 0.75)
+print("The tween value at halfway point is: ", value)
+
+local value = tweener.ease({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, 0.75)
 print("The tween value at halfway point is: ", value)
 ```
 
@@ -234,6 +250,14 @@ If you have any issues, questions or suggestions please [create an issue](https:
 	<summary><b>Changelog</b></summary>
 
 	- Changed timer `delta time` to `socket.gettime` for more precise tweening
+</details>
+
+
+### **V3**
+<details>
+	<summary><b>Changelog</b></summary>
+
+	- Added custom easings support
 </details>
 
 
