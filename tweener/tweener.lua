@@ -1,6 +1,9 @@
-local UPDATE_FREQUENCY = sys.get_config_int("tweener.UPDATE_FREQUENCY", 60)
+local UPDATE_FREQUENCY = sys.get_config_int("tweener.update_frequency", 60)
 
+---@class tweener
 local M = {}
+
+---@alias easing_function (fun(current: number, from: number, to: number, time: number): number)|constant|number[]
 
 ---@class hash
 ---@class constant
@@ -43,13 +46,14 @@ local function get_custom_easing(easing)
 end
 
 
+---Starts a tweening operation.
 ---@param easing_function easing_function
 ---@param from number
 ---@param to number
 ---@param time number
 ---@param callback fun(value: number, is_end: boolean)
 ---@param update_delta_time number|nil @Default is 1/60, the time between updates
----@return hash @The created timer id
+---@return hash timer_id The created timer id, you can cancel a tween by calling timer.cancel(timer_id)
 function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	update_delta_time = update_delta_time or (1 / UPDATE_FREQUENCY)
 
@@ -64,6 +68,12 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	local latest_time = socket.gettime()
 
 	local timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
+		if time <= 0 then
+			timer.cancel(handle)
+			callback(to, true)
+			return
+		end
+
 		local current_time = socket.gettime()
 		time_elapsed = time_elapsed + (current_time - latest_time)
 		latest_time = current_time
