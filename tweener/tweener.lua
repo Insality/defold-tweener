@@ -22,26 +22,7 @@ local function get_custom_easing(easing)
 	end
 
 	return function(t, b, c, d)
-		if d == 0 then
-			error("Division by zero: 'd' must not be zero.")
-		end
-
-		local time_progress = t / d
-		if time_progress >= 1 then
-			return (c + b) * easing[sample_count]
-		end
-		if time_progress <= 0 then
-			return b * easing[1]
-		end
-
-		local sample_index = sample_count - 1
-		local index1 = math.floor(time_progress * sample_index)
-		local index2 = math.min(index1 + 1, sample_index)
-
-		local diff = (time_progress - index1 * (1 / sample_index)) * sample_index
-		local progress = easing[index1 + 1] * (1.0 - diff) + easing[index2 + 1] * diff
-
-		return c * progress + b
+		return M.custom_easing(easing, t, b, c, d)
 	end
 end
 
@@ -105,9 +86,33 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 	easing_function = M.DEFOLD_EASINGS[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
-		easing_function = get_custom_easing(easing_function --[[@as vector]])
+		return M.custom_easing(easing_function, time_elapsed, from, to - from, time)
 	end
 	return easing_function(time_elapsed, from, to - from, time)
+end
+
+
+function M.custom_easing(easing, t, b, c, d)
+	if d == 0 then
+		error("Division by zero: 'd' must not be zero.")
+	end
+
+	local time_progress = t / d
+	if time_progress >= 1 then
+		return (c + b) * easing[#easing]
+	end
+	if time_progress <= 0 then
+		return b * easing[1]
+	end
+
+	local sample_index = #easing - 1
+	local index1 = math.floor(time_progress * sample_index)
+	local index2 = math.min(index1 + 1, sample_index)
+
+	local diff = (time_progress - index1 * (1 / sample_index)) * sample_index
+	local progress = easing[index1 + 1] * (1.0 - diff) + easing[index2 + 1] * diff
+
+	return c * progress + b
 end
 
 
