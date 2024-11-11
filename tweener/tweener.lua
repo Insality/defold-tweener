@@ -39,7 +39,7 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	update_delta_time = update_delta_time or (1 / UPDATE_FREQUENCY)
 
 	-- Acquire the easing function
-	easing_function = M.DEFOLD_EASINGS[easing_function] or easing_function
+	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
 		easing_function = get_custom_easing(easing_function --[[@as vector]])
@@ -83,7 +83,7 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 		return to
 	end
 
-	easing_function = M.DEFOLD_EASINGS[easing_function] or easing_function
+	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
 		return M.custom_easing(easing_function, time_elapsed, from, to - from, time)
