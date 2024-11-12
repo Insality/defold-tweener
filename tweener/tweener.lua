@@ -1,6 +1,9 @@
-local UPDATE_FREQUENCY = sys.get_config_int("tweener.UPDATE_FREQUENCY", 60)
+local UPDATE_FREQUENCY = sys.get_config_int("tweener.update_frequency", 60)
 
+---@class tweener
 local M = {}
+
+---@alias easing_function (fun(current: number, from: number, to: number, time: number): number)|string|constant|number[]
 
 ---@class hash
 ---@class constant
@@ -10,60 +13,39 @@ local TYPE_TABLE = "table"
 local TYPE_USERDATA = "userdata"
 
 
----@param easing number[]|vector @The array of easing values, Example: {0, 0.5, 1, 2, 1}. Must have at least two elements.
----@return easing_function @The easing function
-local function get_custom_easing(easing)
-	local sample_count = #easing
-	if sample_count < 2 then
-		error("Easing table must have at least two elements.")
-	end
-
-	return function(t, b, c, d)
-		if d == 0 then
-			error("Division by zero: 'd' must not be zero.")
-		end
-
-		local time_progress = t / d
-		if time_progress >= 1 then
-			return (c + b) * easing[sample_count]
-		end
-		if time_progress <= 0 then
-			return b * easing[1]
-		end
-
-		local sample_index = sample_count - 1
-		local index1 = math.floor(time_progress * sample_index)
-		local index2 = math.min(index1 + 1, sample_index)
-
-		local diff = (time_progress - index1 * (1 / sample_index)) * sample_index
-		local progress = easing[index1 + 1] * (1.0 - diff) + easing[index2 + 1] * diff
-
-		return c * progress + b
-	end
-end
-
-
+---Starts a tweening operation.
 ---@param easing_function easing_function
 ---@param from number
 ---@param to number
 ---@param time number
 ---@param callback fun(value: number, is_end: boolean)
 ---@param update_delta_time number|nil @Default is 1/60, the time between updates
----@return hash @The created timer id
+---@return hash timer_id The created timer id, you can cancel a tween by calling timer.cancel(timer_id)
 function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	update_delta_time = update_delta_time or (1 / UPDATE_FREQUENCY)
 
 	-- Acquire the easing function
-	easing_function = M.DEFOLD_EASINGS[easing_function] or easing_function
+	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
-		easing_function = get_custom_easing(easing_function --[[@as vector]])
+		---@cast easing_function number[]
+		local custom_easing = function(t, b, c, d)
+			return M.custom_ease(easing_function, t, b, c, d)
+		end
+
+		easing_function = custom_easing
 	end
 
 	local time_elapsed = 0
 	local latest_time = socket.gettime()
 
 	local timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
+		if time <= 0 then
+			timer.cancel(handle)
+			callback(to, true)
+			return
+		end
+
 		local current_time = socket.gettime()
 		time_elapsed = time_elapsed + (current_time - latest_time)
 		latest_time = current_time
@@ -92,12 +74,58 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 		return to
 	end
 
-	easing_function = M.DEFOLD_EASINGS[easing_function] or easing_function
+	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
-		easing_function = get_custom_easing(easing_function --[[@as vector]])
+		---@cast easing_function number[]
+		return M.custom_ease(easing_function, time_elapsed, from, to - from, time)
 	end
+
 	return easing_function(time_elapsed, from, to - from, time)
+end
+
+
+---Cancel a previous running tween.
+---@param tween_id hash the tween handle returned by `tween` function
+---@return boolean true if the tween was active, false if the tween is already cancelled / complete
+function M.cancel(tween_id)
+	return timer.cancel(tween_id)
+end
+
+
+---@private
+---@param easing number[] @The array of easing values, Example: {0, 0.5, 1, 2, 1}. Must have at least two elements.
+---@param t number @current time [0 .. t - from]
+---@param b number @beginning value
+---@param c number @change in value
+---@param d number @duration
+---@return number @The result of easing
+function M.custom_ease(easing, t, b, c, d)
+	if d == 0 then
+		error("Division by zero: 'd' must not be zero.")
+	end
+
+	local sample_count = #easing
+	if sample_count < 2 then
+		error("Easing table must have at least two elements.")
+	end
+
+	local time_progress = t / d
+	if time_progress >= 1 then
+		return (c + b) * easing[sample_count]
+	end
+	if time_progress <= 0 then
+		return b * easing[1]
+	end
+
+	local sample_index = sample_count - 1
+	local index1 = math.floor(time_progress * sample_index)
+	local index2 = math.min(index1 + 1, sample_index)
+
+	local diff = (time_progress - index1 * (1 / sample_index)) * sample_index
+	local progress = easing[index1 + 1] * (1.0 - diff) + easing[index2 + 1] * diff
+
+	return c * progress + b
 end
 
 
