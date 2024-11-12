@@ -3,7 +3,7 @@ local UPDATE_FREQUENCY = sys.get_config_int("tweener.update_frequency", 60)
 ---@class tweener
 local M = {}
 
----@alias easing_function (fun(current: number, from: number, to: number, time: number): number)|constant|number[]
+---@alias easing_function (fun(current: number, from: number, to: number, time: number): number)|string|constant|number[]
 
 ---@class hash
 ---@class constant
@@ -11,20 +11,6 @@ local M = {}
 
 local TYPE_TABLE = "table"
 local TYPE_USERDATA = "userdata"
-
-
----@param easing number[]|vector @The array of easing values, Example: {0, 0.5, 1, 2, 1}. Must have at least two elements.
----@return easing_function @The easing function
-local function get_custom_ease(easing)
-	local sample_count = #easing
-	if sample_count < 2 then
-		error("Easing table must have at least two elements.")
-	end
-
-	return function(t, b, c, d)
-		return M.custom_ease(easing, t, b, c, d)
-	end
-end
 
 
 ---Starts a tweening operation.
@@ -42,7 +28,12 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
-		easing_function = get_custom_ease(easing_function --[[@as vector]])
+		---@cast easing_function number[]
+		local custom_easing = function(t, b, c, d)
+			return M.custom_ease(easing_function, t, b, c, d)
+		end
+
+		easing_function = custom_easing
 	end
 
 	local time_elapsed = 0
@@ -89,6 +80,7 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 		---@cast easing_function number[]
 		return M.custom_ease(easing_function, time_elapsed, from, to - from, time)
 	end
+
 	return easing_function(time_elapsed, from, to - from, time)
 end
 
@@ -113,15 +105,20 @@ function M.custom_ease(easing, t, b, c, d)
 		error("Division by zero: 'd' must not be zero.")
 	end
 
+	local sample_count = #easing
+	if sample_count < 2 then
+		error("Easing table must have at least two elements.")
+	end
+
 	local time_progress = t / d
 	if time_progress >= 1 then
-		return (c + b) * easing[#easing]
+		return (c + b) * easing[sample_count]
 	end
 	if time_progress <= 0 then
 		return b * easing[1]
 	end
 
-	local sample_index = #easing - 1
+	local sample_index = sample_count - 1
 	local index1 = math.floor(time_progress * sample_index)
 	local index2 = math.min(index1 + 1, sample_index)
 

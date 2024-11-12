@@ -43,7 +43,7 @@ https://github.com/Insality/defold-tweener/archive/refs/tags/3.zip
 
 ### Global Update Frequency
 
-Optionally, you can setup global default update freqency in your game.project. It's `60` by default.
+Optionally, you can setup global default update frequency in your game.project. It's `60` by default.
 
 Add next `tweener` section to your `game.project` in text mode:
 
@@ -57,7 +57,8 @@ update_frequency = 60
 ### Quick API Reference
 
 ```lua
-local tween_function = tweener.linear or go.EASING_LINEAR or gui.EASING_LINEAR or {0, 0.2, 0.4, 0.8, 0.9, 1}
+-- Tween function can be a string, a predefined easing function, or a custom easing function
+local tween_function = "linear" or tweener.linear or go.EASING_LINEAR or gui.EASING_LINEAR or {0, 0.2, 0.4, 0.8, 0.9, 1}
 
 tweener.tween(tween_function, from, to, time, callback, [dt])
 tweener.ease(tween_function, from, to, time, time_elapsed)
@@ -92,7 +93,7 @@ This function initiates a tween operation immediately. Here's how to use it:
   - `dt` (optional): The time interval for updating the tween, in seconds.
 
 - **Return Value:**
-  - `timer_id`: A timer id from `timer.delay` if you wish to cancel the tween.
+  - `tweener_id`: A tweener id from `timer.delay` if you wish to cancel the tween.
 
 - **Usage Example:**
 
@@ -108,6 +109,7 @@ end)
 local tween_id = tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
+
 -- You can cancel the tween by calling tweener.cancel
 tweener.cancel(tween_id)
 ```
