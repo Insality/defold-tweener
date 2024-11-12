@@ -25,10 +25,10 @@
 
 Open your `game.project` file and add the following line to the dependencies field under the project section:
 
-**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/3.zip)**
+**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip)**
 
 ```
-https://github.com/Insality/defold-tweener/archive/refs/tags/3.zip
+https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip
 ```
 
 ### Library Size
@@ -143,6 +143,31 @@ local value = tweener.ease({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, 0.75)
 print("The tween value at halfway point is: ", value)
 ```
 
+
+**tweener.cancel**
+---
+```lua
+tweener.cancel(tweener_id)
+```
+
+This function cancels the tween with the given `tweener_id`. This calls `timer.cancel` internally.
+
+- **Parameters:**
+  - `tweener_id`: The id of the tween to cancel.
+
+- **Return Value:**
+  - `true` if the tween was successfully canceled, `false` otherwise.
+
+- **Usage Example:**
+
+```lua
+local tween_id = tweener.tween(tweener.linear, 0, 100, 1.5, function(value, is_final_call)
+	print("Tween value: " .. value)
+end)
+
+tweener.cancel(tween_id)
+```
+
 These functions provide a flexible and powerful way to add animations and transitions to your projects, making them feel more dynamic and engaging. Enjoy animating with the **Tweener** module! *(Thanks, Mister ChatGPT)* 🙃
 
 
@@ -241,28 +266,24 @@ If you have any issues, questions or suggestions please [create an issue](https:
 
 
 ## Changelog
+<details>
 
 ### **V1**
-<details>
-	<summary><b>Changelog</b></summary>
-
-	- Initial release
-</details>
-
+- Initial release
 
 ### **V2**
-<details>
-	<summary><b>Changelog</b></summary>
-
-	- Changed timer `delta time` to `socket.gettime` for more precise tweening
-</details>
-
+- Changed timer `delta time` to `socket.gettime` for more precise tweening
 
 ### **V3**
-<details>
-	<summary><b>Changelog</b></summary>
+- Added custom easings support
 
-	- Added custom easings support
+### **V4**
+- Fix `update_frequency` game.project settings typo
+- Now able to use string name of easing functions (ex. "linear", "insine", "outquad", etc.)
+- Add `tweener.cancel` function to cancel tweening instead of `timer.cancel` (For better API and README)
+- Code cleanup and better performance
+- Fix if total time is 0, then callback will be called immediately
+
 </details>
 
 
