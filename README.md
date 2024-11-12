@@ -105,9 +105,11 @@ tweener.tween(go.EASING_OUTSINE, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
 
-tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call)
+local tween_id = tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
+-- You can cancel the tween by calling tweener.cancel
+tweener.cancel(tween_id)
 ```
 
 

@@ -15,14 +15,14 @@ local TYPE_USERDATA = "userdata"
 
 ---@param easing number[]|vector @The array of easing values, Example: {0, 0.5, 1, 2, 1}. Must have at least two elements.
 ---@return easing_function @The easing function
-local function get_custom_easing(easing)
+local function get_custom_ease(easing)
 	local sample_count = #easing
 	if sample_count < 2 then
 		error("Easing table must have at least two elements.")
 	end
 
 	return function(t, b, c, d)
-		return M.custom_easing(easing, t, b, c, d)
+		return M.custom_ease(easing, t, b, c, d)
 	end
 end
 
@@ -42,7 +42,7 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
-		easing_function = get_custom_easing(easing_function --[[@as vector]])
+		easing_function = get_custom_ease(easing_function --[[@as vector]])
 	end
 
 	local time_elapsed = 0
@@ -86,13 +86,29 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
-		return M.custom_easing(easing_function, time_elapsed, from, to - from, time)
+		---@cast easing_function number[]
+		return M.custom_ease(easing_function, time_elapsed, from, to - from, time)
 	end
 	return easing_function(time_elapsed, from, to - from, time)
 end
 
 
-function M.custom_easing(easing, t, b, c, d)
+---Cancel a previous running tween.
+---@param tween_id hash the tween handle returned by `tween` function
+---@return boolean true if the tween was active, false if the tween is already cancelled / complete
+function M.cancel(tween_id)
+	return timer.cancel(tween_id)
+end
+
+
+---@private
+---@param easing number[] @The array of easing values, Example: {0, 0.5, 1, 2, 1}. Must have at least two elements.
+---@param t number @current time [0 .. t - from]
+---@param b number @beginning value
+---@param c number @change in value
+---@param d number @duration
+---@return number @The result of easing
+function M.custom_ease(easing, t, b, c, d)
 	if d == 0 then
 		error("Division by zero: 'd' must not be zero.")
 	end
