@@ -60,8 +60,9 @@ update_frequency = 60
 -- Tween function can be a string, a predefined easing function, or a custom easing function
 local tween_function = "linear" or tweener.linear or go.EASING_LINEAR or gui.EASING_LINEAR or {0, 0.2, 0.4, 0.8, 0.9, 1}
 
-tweener.tween(tween_function, from, to, time, callback, [dt])
 tweener.ease(tween_function, from, to, time, time_elapsed)
+tweener.tween(tween_function, from, to, time, callback, [dt]) -- Returns tween_id
+tweener.cancel(tween_id)
 ```
 
 ### Importing the Module

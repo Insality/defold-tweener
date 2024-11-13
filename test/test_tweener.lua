@@ -31,6 +31,13 @@ return function()
 			assert(tweener.ease(easing, 0, 100, 1, -1) == 0)
 			assert(tweener.ease(easing, 0, 100, 1, 0) == 0)
 			assert(tweener.ease(easing, 0, 100, 1, 2) == 0)
+
+			-- Non from zero
+			assert(tweener.ease(easing, 100, 200, 1, 0) == 100)
+			assert(tweener.ease(easing, 100, 200, 1, 0.25) == 200)
+			assert(tweener.ease(easing, 100, 200, 1, 0.5) == 300)
+			assert(tweener.ease(easing, 100, 200, 1, 0.75) == 200)
+			assert(tweener.ease(easing, 100, 200, 1, 1) == 100)
 		end)
 
 		it("Tweener should support each Defold tweening", function()

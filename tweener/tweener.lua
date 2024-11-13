@@ -112,10 +112,10 @@ function M.custom_ease(easing, t, b, c, d)
 
 	local time_progress = t / d
 	if time_progress >= 1 then
-		return (c + b) * easing[sample_count]
+		return c * easing[sample_count] + b
 	end
 	if time_progress <= 0 then
-		return b * easing[1]
+		return b + (c * easing[1])
 	end
 
 	local sample_index = sample_count - 1
