@@ -14,14 +14,15 @@ local TYPE_USERDATA = "userdata"
 
 
 ---Starts a tweening operation.
----@param easing_function easing_function
----@param from number
----@param to number
----@param time number
----@param callback fun(value: number, is_end: boolean)
----@param update_delta_time number|nil @Default is 1/60, the time between updates
+---@param easing_function easing_function The easing function to use
+---@param from number The starting value to tween from
+---@param to number The target value to tween to
+---@param time number|nil The duration of the tween in seconds, default is 1
+---@param callback fun(value: number, is_end: boolean) The callback function to call on each update
+---@param update_delta_time number|nil Default is 1/60, the time between updates
 ---@return hash timer_id The created timer id, you can cancel a tween by calling timer.cancel(timer_id)
 function M.tween(easing_function, from, to, time, callback, update_delta_time)
+	time = time or 1
 	update_delta_time = update_delta_time or (1 / UPDATE_FREQUENCY)
 
 	-- Acquire the easing function
@@ -66,10 +67,11 @@ end
 ---@param easing_function easing_function
 ---@param from number
 ---@param to number
----@param time number
+---@param time number|nil The duration of the tween in seconds, default is 1
 ---@param time_elapsed number @current time [0 .. t - from]
 ---@return number @The result of easing
 function M.ease(easing_function, from, to, time, time_elapsed)
+	time = time or 1
 	if time == 0 then
 		return to
 	end
