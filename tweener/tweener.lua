@@ -12,6 +12,7 @@ local M = {}
 local TYPE_TABLE = "table"
 local TYPE_USERDATA = "userdata"
 
+local current_tweens = {}
 
 ---Starts a tweening operation.
 ---@param easing_function easing_function
@@ -37,27 +38,38 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	end
 
 	local time_elapsed = 0
+
 	local latest_time = socket.gettime()
 
 	local timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
+
 		if time <= 0 then
 			timer.cancel(handle)
+            current_tweens[handle] = nil
 			callback(to, true)
 			return
 		end
 
 		local current_time = socket.gettime()
-		time_elapsed = time_elapsed + (current_time - latest_time)
+
+        if current_tweens[handle]["paused"] == false then
+            time_elapsed = time_elapsed + (current_time - latest_time)
+        end
 		latest_time = current_time
 
 		if time_elapsed >= time then
 			timer.cancel(handle)
+            current_tweens[handle] = nil
 			callback(easing_function(time, from, to - from, time), true)
 			return
 		end
 
-		callback(easing_function(time_elapsed, from, to - from, time), false)
+        if current_tweens[handle]["paused"] == false then
+		    callback(easing_function(time_elapsed, from, to - from, time), false)
+        end
 	end)
+
+    current_tweens[timer_id] = { ["paused"] = false }
 
 	return timer_id
 end
@@ -85,11 +97,49 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 end
 
 
+---Check if a tween exists and is running.
+---@param tween_id hash the tween handle returned by `tween` function
+---@return boolean true if the tween is active, false if the tween doesn't exist
+function M.exists(tween_id)
+    return current_tweens[tween_id] ~= nil
+end
+
 ---Cancel a previous running tween.
 ---@param tween_id hash the tween handle returned by `tween` function
 ---@return boolean true if the tween was active, false if the tween is already cancelled / complete
 function M.cancel(tween_id)
+    if current_tweens[tween_id] ~= false then
+        current_tweens[tween_id] = nil
+    end
 	return timer.cancel(tween_id)
+end
+
+---Pause a running tween.
+---@param tween_id hash the tween handle returned by `tween` function
+---@return boolean true if the tween was active and could be paused, false if the tween doesn't exist or already paused
+function M.pause(tween_id)
+    if current_tweens[tween_id] == nil then
+        return false
+    end
+    if current_tweens[tween_id]["paused"] == true then
+        return false
+    end
+	current_tweens[tween_id]["paused"] = true
+    return true
+end
+
+---Resume a running tween.
+---@param tween_id hash the tween handle returned by `tween` function
+---@return boolean true if the tween was active and could be resumed, false if the tween doesn't exist or playing
+function M.resume(tween_id)
+    if current_tweens[tween_id] == nil then
+        return false
+    end
+    if current_tweens[tween_id]["paused"] == false then
+        return false
+    end
+	current_tweens[tween_id]["paused"] = false
+    return true
 end
 
 
