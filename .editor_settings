@@ -1,0 +1,52 @@
+{
+  :bundle {
+    :android {
+      :architecture {
+        :arm64-android true
+        :armv7-android true
+      }
+      :format "apk"
+      :install true
+      :key-pass "/Users/stevenmcdade/Documents/GitHub/de_Trivia/triviakeystorepass.txt"
+      :keystore "/Users/stevenmcdade/Documents/GitHub/godot_keystores/Trivia/triviaguyjustquiz.keystore"
+      :keystore-pass "/Users/stevenmcdade/Documents/GitHub/de_Trivia/triviakeystorepass.txt"
+      :launch true
+    }
+    :build-report false
+    :contentless false
+    :debug-symbols true
+    :ios {
+      :architecture {
+        :arm64-ios true
+        :x86_64-ios false
+      }
+      :code-signing-identity "Apple Development: Steven McDade (G75UA87ZS9)"
+      :install true
+      :launch true
+      :provisioning-profile "/Users/stevenmcdade/Desktop/embedded_trivia.mobileprovision"
+      :sign true
+    }
+    :liveupdate false
+    :texture-compression "enabled"
+    :variant "debug"
+  }
+  :code {
+    :find {
+      :replacement "apex_panel"
+      :term "type"
+    }
+  }
+  :search-in-files {
+    :exts ""
+    :include-libraries true
+    :term "random"
+  }
+  :workflow {
+    :recent-files [
+      [
+        "/tweener/tweener.lua"
+        :code
+      ]
+    ]
+  }
+}
