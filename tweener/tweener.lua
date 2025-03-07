@@ -12,7 +12,6 @@ local M = {}
 local TYPE_TABLE = "table"
 local TYPE_USERDATA = "userdata"
 
-
 ---Starts a tweening operation.
 ---@param easing_function easing_function
 ---@param from number
@@ -20,7 +19,7 @@ local TYPE_USERDATA = "userdata"
 ---@param time number
 ---@param callback fun(value: number, is_end: boolean)
 ---@param update_delta_time number|nil @Default is 1/60, the time between updates
----@return hash timer_id The created timer id, you can cancel a tween by calling timer.cancel(timer_id)
+---@return table timer_state The created timer information, you can cancel a tween by calling tweener.cancel(timer_state)
 function M.tween(easing_function, from, to, time, callback, update_delta_time)
 	update_delta_time = update_delta_time or (1 / UPDATE_FREQUENCY)
 
@@ -38,28 +37,36 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 
 	local time_elapsed = 0
 	local latest_time = socket.gettime()
+	local timer_state = { timer_id = nil, is_paused = false }
 
-	local timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
+	timer_state.timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
+
 		if time <= 0 then
-			timer.cancel(handle)
+			timer.cancel(timer_state.timer_id)
 			callback(to, true)
 			return
 		end
 
 		local current_time = socket.gettime()
-		time_elapsed = time_elapsed + (current_time - latest_time)
+
+        if timer_state.is_paused == true then
+            time_elapsed = time_elapsed + (current_time - latest_time)
+        end
 		latest_time = current_time
 
 		if time_elapsed >= time then
-			timer.cancel(handle)
+			timer.cancel(timer_state.timer_id)
+			timer_state.timer_id = nil
 			callback(easing_function(time, from, to - from, time), true)
 			return
 		end
 
-		callback(easing_function(time_elapsed, from, to - from, time), false)
+        if timer_state.is_paused == false then
+		    callback(easing_function(time_elapsed, from, to - from, time), false)
+        end
 	end)
 
-	return timer_id
+	return timer_state
 end
 
 
@@ -84,12 +91,33 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 	return easing_function(time_elapsed, from, to - from, time)
 end
 
+---Check if a tween exists and is running.
+---@param timer_state table the tween handle returned by `tween` function
+---@return boolean true if the tween is active, false if the tween doesn't exist
+function M.is_exists(timer_state)
+    return timer_state.timer_id ~= nil
+end
 
 ---Cancel a previous running tween.
----@param tween_id hash the tween handle returned by `tween` function
+---@param timer_state table the tween handle returned by `tween` function
 ---@return boolean true if the tween was active, false if the tween is already cancelled / complete
-function M.cancel(tween_id)
-	return timer.cancel(tween_id)
+function M.cancel(timer_state)
+	return timer.cancel(timer_state.timer_id)
+end
+
+---Check if a tween exists and is paused.
+---@param timer_state table the tween handle returned by `tween` function
+---@return boolean true if the tween is active and paused, false if the tween is running, nil if the tween doesn't exist
+function M.is_paused(timer_state)
+    return timer_state.is_paused
+end
+
+---Sets the pause on a running tween.
+---@param timer_state table the tween handle returned by `tween` function
+---@return boolean true if the tween was active and could be paused, false if the tween doesn't exist or already paused
+function M.set_pause(timer_state, is_paused)
+	timer_state.is_paused = is_paused
+	return timer_state.is_paused
 end
 
 
