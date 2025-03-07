@@ -12,6 +12,10 @@ local M = {}
 local TYPE_TABLE = "table"
 local TYPE_USERDATA = "userdata"
 
+-- Local versions
+local math_floor = math.floor
+local math_min = math.min
+
 ---Starts a tweening operation.
 ---@param easing_function easing_function The easing function to use
 ---@param from number The starting value to tween from
@@ -26,6 +30,8 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 
 	-- Acquire the easing function
 	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
+
+	-- Check custom easings
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
 		local number_values = easing_function --[[ @as number[] ]]
@@ -131,10 +137,9 @@ end
 
 ---Sets the pause on a running tween.
 ---@param timer_state tween the tween handle returned by `tween` function
----@return boolean true if the tween was active and could be paused, false if the tween doesn't exist or already paused
+---@param is_paused boolean the tween paused state
 function M.set_pause(timer_state, is_paused)
 	timer_state.is_paused = is_paused
-	return timer_state.is_paused
 end
 
 
@@ -164,8 +169,8 @@ function M.custom_ease(easing, t, b, c, d)
 	end
 
 	local sample_index = sample_count - 1
-	local index1 = math.floor(time_progress * sample_index)
-	local index2 = math.min(index1 + 1, sample_index)
+	local index1 = math_floor(time_progress * sample_index)
+	local index2 = math_min(index1 + 1, sample_index)
 
 	local diff = (time_progress - index1 * (1 / sample_index)) * sample_index
 	local progress = easing[index1 + 1] * (1.0 - diff) + easing[index2 + 1] * diff
