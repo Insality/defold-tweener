@@ -359,6 +359,7 @@ If you have any issues, questions or suggestions please [create an issue](https:
 
 ### **V5**
 - [Breaking]: `tweener.tween` now returns a tween object instead of a timer id. So if you used `timer.cancel` to cancel the tween, you need to use `tweener.cancel` instead.
+- Added `tweener.set_pause` function to pause and resume a tween
 - Added `tweener.is_paused` function to check if a tween is paused
 - Added `tweener.is_active` function to check if a tween is active
 
