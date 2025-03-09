@@ -1,81 +1,110 @@
 local UPDATE_FREQUENCY = sys.get_config_int("tweener.update_frequency", 60)
 
+---Describe a struct of tween object returned by the `tween` function
+---@class tween
+---@field timer_id number The timer id handle from the `timer.delay` function
+---@field is_paused boolean Whether the tween is paused
+
+---A tweener module to manage tweening operations
 ---@class tweener
 local M = {}
 
 ---@alias easing_function (fun(current: number, from: number, to: number, time: number): number)|string|constant|number[]
 
----@class hash
----@class constant
----@class vector
-
 local TYPE_TABLE = "table"
 local TYPE_USERDATA = "userdata"
 
+-- Local versions
+local math_floor = math.floor
+local math_min = math.min
 
----Starts a tweening operation.
----@param easing_function easing_function
----@param from number
----@param to number
----@param time number
----@param callback fun(value: number, is_end: boolean)
----@param update_delta_time number|nil @Default is 1/60, the time between updates
----@return hash timer_id The created timer id, you can cancel a tween by calling timer.cancel(timer_id)
+---Starts a tweening operation. Return a tween object to manage the tween.
+---@param easing_function easing_function The easing function to use
+---@param from number The starting value to tween from
+---@param to number The target value to tween to
+---@param time number|nil The duration of the tween in seconds, default is 1
+---@param callback fun(value: number, is_end: boolean) The callback function to call on each update
+---@param update_delta_time number|nil Default is 1/60, the time between updates
+---@return tween tween A new created tween state
 function M.tween(easing_function, from, to, time, callback, update_delta_time)
+	time = time or 1
 	update_delta_time = update_delta_time or (1 / UPDATE_FREQUENCY)
 
 	-- Acquire the easing function
 	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
+
+	-- Check custom easings
 	local easing_type = type(easing_function)
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
-		---@cast easing_function number[]
+		local number_values = easing_function --[[ @as number[] ]]
 		local custom_easing = function(t, b, c, d)
-			return M.custom_ease(easing_function, t, b, c, d)
+			return M.custom_ease(number_values, t, b, c, d)
 		end
 
 		easing_function = custom_easing
 	end
 
+	-- Create the tween object
 	local time_elapsed = 0
 	local latest_time = socket.gettime()
+	local tween = {
+		timer_id = nil,
+		is_paused = false
+	}
 
-	local timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
+	-- Create the timer
+	tween.timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
+		-- If the tween is paused, update the latest time and return
+		if tween.is_paused then
+			latest_time = socket.gettime()
+			return
+		end
+
+		-- Cancel the tween if the time is zero from the start
 		if time <= 0 then
-			timer.cancel(handle)
+			M.cancel(tween)
 			callback(to, true)
 			return
 		end
 
+		-- Update the time elapsed
 		local current_time = socket.gettime()
 		time_elapsed = time_elapsed + (current_time - latest_time)
 		latest_time = current_time
 
+		-- If the tween is finished, cancel it and call the callback
 		if time_elapsed >= time then
-			timer.cancel(handle)
-			callback(easing_function(time, from, to - from, time), true)
+			M.cancel(tween)
+			local value = easing_function(time, from, to - from, time)
+			callback(value, true)
 			return
 		end
 
-		callback(easing_function(time_elapsed, from, to - from, time), false)
+		-- Update the tween and call the callback
+		local value = easing_function(time_elapsed, from, to - from, time)
+		callback(value, false)
 	end)
 
-	return timer_id
+	return tween
 end
 
 
+---Returns the result of an easing function.
 ---@param easing_function easing_function
 ---@param from number
 ---@param to number
----@param time number
----@param time_elapsed number @current time [0 .. t - from]
----@return number @The result of easing
+---@param time number|nil The duration of the tween in seconds, default is 1
+---@param time_elapsed number current time [0 .. t - from]
+---@return number result The result of easing
 function M.ease(easing_function, from, to, time, time_elapsed)
+	time = time or 1
 	if time == 0 then
 		return to
 	end
 
 	easing_function = M.DEFOLD_EASINGS[easing_function] or M[easing_function] or easing_function
 	local easing_type = type(easing_function)
+
 	if easing_type == TYPE_USERDATA or easing_type == TYPE_TABLE then
 		---@cast easing_function number[]
 		return M.custom_ease(easing_function, time_elapsed, from, to - from, time)
@@ -85,21 +114,52 @@ function M.ease(easing_function, from, to, time, time_elapsed)
 end
 
 
+---Check if a tween exists
+---@param tween tween the tween handle returned by `tween` function
+---@return boolean true if the tween is active, false if the tween finished
+function M.is_active(tween)
+	return tween.timer_id ~= nil
+end
+
+
 ---Cancel a previous running tween.
----@param tween_id hash the tween handle returned by `tween` function
+---@param tween tween the tween handle returned by `tween` function
 ---@return boolean true if the tween was active, false if the tween is already cancelled / complete
-function M.cancel(tween_id)
-	return timer.cancel(tween_id)
+function M.cancel(tween)
+	if not tween.timer_id then
+		return false
+	end
+
+	timer.cancel(tween.timer_id)
+	tween.timer_id = nil
+	tween.is_paused = false
+	return true
+end
+
+
+---Check if a tween is paused
+---@param tween tween the tween handle returned by `tween` function
+---@return boolean is_paused true if the tween is active and paused, false if the tween is running
+function M.is_paused(tween)
+	return tween.is_paused
+end
+
+
+---Sets the pause on a running tween.
+---@param tween tween the tween handle returned by `tween` function
+---@param is_paused boolean the tween paused state
+function M.set_pause(tween, is_paused)
+	tween.is_paused = is_paused
 end
 
 
 ---@private
----@param easing number[] @The array of easing values, Example: {0, 0.5, 1, 2, 1}. Must have at least two elements.
----@param t number @current time [0 .. t - from]
----@param b number @beginning value
----@param c number @change in value
----@param d number @duration
----@return number @The result of easing
+---@param easing number[] The array of easing values, Example: {0, 0.5, 1, 2, 1}. Must have at least two elements.
+---@param t number current time [0 .. t - from]
+---@param b number beginning value
+---@param c number change in value
+---@param d number duration
+---@return number The result of easing
 function M.custom_ease(easing, t, b, c, d)
 	if d == 0 then
 		error("Division by zero: 'd' must not be zero.")
@@ -111,16 +171,16 @@ function M.custom_ease(easing, t, b, c, d)
 	end
 
 	local time_progress = t / d
-	if time_progress >= 1 then
-		return c * easing[sample_count] + b
-	end
 	if time_progress <= 0 then
-		return b + (c * easing[1])
+		return b + c * easing[1]
+	end
+	if time_progress >= 1 then
+		return b + c * easing[sample_count]
 	end
 
 	local sample_index = sample_count - 1
-	local index1 = math.floor(time_progress * sample_index)
-	local index2 = math.min(index1 + 1, sample_index)
+	local index1 = math_floor(time_progress * sample_index)
+	local index2 = math_min(index1 + 1, sample_index)
 
 	local diff = (time_progress - index1 * (1 / sample_index)) * sample_index
 	local progress = easing[index1 + 1] * (1.0 - diff) + easing[index2 + 1] * diff
