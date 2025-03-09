@@ -15,9 +15,9 @@
 
 - **Tweening**: Create tweens for any action your want.
 - **Easing Functions**: Provides a set of easing functions for different types of easings.
-- **Custom Update Frequency**: Option to define update frequency for the tween.
 - **Callbacks**: Callbacks for each tween update.
 - **Custom Easings**: Support for custom easing functions.
+- **Custom Update Frequency**: Option to define update frequency for the tween.
 
 ## Setup
 
@@ -25,10 +25,10 @@
 
 Open your `game.project` file and add the following line to the dependencies field under the project section:
 
-**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip)**
+**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip)**
 
 ```
-https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip
+https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip
 ```
 
 ### Library Size
@@ -41,9 +41,11 @@ https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip
 | Desktop / Mobile | **6.21 KB**  |
 
 
-### Global Update Frequency
+### Global Update Frequency [Optional]
 
 Optionally, you can setup global default update frequency in your game.project. It's `60` by default.
+
+This is a global settings for the tweener. You can specify the update frequence parameter in the `tweener.tween` function for special tween operation.
 
 Add next `tweener` section to your `game.project` in text mode:
 
@@ -98,7 +100,7 @@ This function initiates a tween operation immediately. Here's how to use it:
   - `dt` (optional): The time interval for updating the tween, in seconds.
 
 - **Return Value:**
-  - `tween`: A tween object. You can use it to cancel the tween, check if it exists, or pause it.
+  - `tween`: A tween object. You can use it to cancel the tween, check if it still running, or pause it.
 
 - **Usage Example:**
 
@@ -183,7 +185,7 @@ tweener.is_paused(tween)
 This function returns `true` if the tween is paused, `false` otherwise.
 
 - **Parameters:**
-  - `tween`: The tween object to check.
+  - `tween`: The tween object to check. It returned from `tweener.tween` function.
 
 - **Return Value:**
   - `true` if the tween is paused, `false` otherwise.
@@ -198,7 +200,7 @@ tweener.set_pause(tween, is_paused)
 This function sets the pause state of the tween.
 
 - **Parameters:**
-  - `tween`: The tween object to set the pause state.
+  - `tween`: The tween object to set the pause state. It returned from `tweener.tween` function.
   - `is_paused`: The new pause state.
 
 - **Return Value:**
@@ -225,7 +227,7 @@ tweener.is_active(tween)
 This function returns `true` if the tween is running, `false` is the tween is finished.
 
 - **Parameters:**
-  - `tween`: The tween object to check.
+  - `tween`: The tween object to check. It returned from `tweener.tween` function.
 
 - **Return Value:**
   - `true` if the tween is running, `false` is the tween is finished.
@@ -354,6 +356,12 @@ If you have any issues, questions or suggestions please [create an issue](https:
 - Add `tweener.cancel` function to cancel tweening instead of `timer.cancel` (For better API and README)
 - Code cleanup and better performance
 - Fix if total time is 0, then callback will be called immediately
+
+### **V5**
+- [Breaking]: `tweener.tween` now returns a tween object instead of a timer id. So if you used `timer.cancel` to cancel the tween, you need to use `tweener.cancel` instead.
+- Added `tweener.is_paused` function to check if a tween is paused
+- Added `tweener.is_active` function to check if a tween is active
+
 
 </details>
 
