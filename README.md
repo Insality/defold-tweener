@@ -15,9 +15,9 @@
 
 - **Tweening**: Create tweens for any action your want.
 - **Easing Functions**: Provides a set of easing functions for different types of easings.
-- **Custom Update Frequency**: Option to define update frequency for the tween.
 - **Callbacks**: Callbacks for each tween update.
 - **Custom Easings**: Support for custom easing functions.
+- **Custom Update Frequency**: Option to define update frequency for the tween.
 
 ## Setup
 
@@ -25,10 +25,10 @@
 
 Open your `game.project` file and add the following line to the dependencies field under the project section:
 
-**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip)**
+**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip)**
 
 ```
-https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip
+https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip
 ```
 
 ### Library Size
@@ -41,9 +41,11 @@ https://github.com/Insality/defold-tweener/archive/refs/tags/4.zip
 | Desktop / Mobile | **6.21 KB**  |
 
 
-### Global Update Frequency
+### Global Update Frequency [Optional]
 
 Optionally, you can setup global default update frequency in your game.project. It's `60` by default.
+
+This is a global settings for the tweener. You can specify the update frequence parameter in the `tweener.tween` function for special tween operation.
 
 Add next `tweener` section to your `game.project` in text mode:
 
@@ -60,8 +62,13 @@ update_frequency = 60
 -- Tween function can be a string, a predefined easing function, or a custom easing function
 local tween_function = "linear" or tweener.linear or go.EASING_LINEAR or gui.EASING_LINEAR or {0, 0.2, 0.4, 0.8, 0.9, 1}
 
-tweener.tween(tween_function, from, to, time, callback, [dt])
-tweener.ease(tween_function, from, to, time, time_elapsed)
+local tween = tweener.tween(tween_function, from, to, time, callback, [dt])
+tweener.cancel(tween)
+tweener.set_pause(tween, true)
+tweener.is_paused(tween)
+tweener.is_active(tween)
+
+local value = tweener.ease(tween_function, from, to, time, time_elapsed)
 ```
 
 ### Importing the Module
@@ -93,7 +100,7 @@ This function initiates a tween operation immediately. Here's how to use it:
   - `dt` (optional): The time interval for updating the tween, in seconds.
 
 - **Return Value:**
-  - `tweener_id`: A tweener id from `timer.delay` if you wish to cancel the tween.
+  - `tween`: A tween object. You can use it to cancel the tween, check if it still running, or pause it.
 
 - **Usage Example:**
 
@@ -106,12 +113,12 @@ tweener.tween(go.EASING_OUTSINE, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
 
-local tween_id = tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call)
+local tween = tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
 
 -- You can cancel the tween by calling tweener.cancel
-tweener.cancel(tween_id)
+tweener.cancel(tween)
 ```
 
 
@@ -147,13 +154,13 @@ print("The tween value at halfway point is: ", value)
 **tweener.cancel**
 ---
 ```lua
-tweener.cancel(tweener_id)
+tweener.cancel(tween)
 ```
 
-This function cancels the tween with the given `tweener_id`. This calls `timer.cancel` internally.
+This function cancels the tween with the given `tween` object.
 
 - **Parameters:**
-  - `tweener_id`: The id of the tween to cancel.
+  - `tween`: The tween object to cancel.
 
 - **Return Value:**
   - `true` if the tween was successfully canceled, `false` otherwise.
@@ -161,15 +168,81 @@ This function cancels the tween with the given `tweener_id`. This calls `timer.c
 - **Usage Example:**
 
 ```lua
-local tween_id = tweener.tween(tweener.linear, 0, 100, 1.5, function(value, is_final_call)
+local tween = tweener.tween(tweener.linear, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
 
-tweener.cancel(tween_id)
+tweener.cancel(tween)
 ```
 
-These functions provide a flexible and powerful way to add animations and transitions to your projects, making them feel more dynamic and engaging. Enjoy animating with the **Tweener** module! *(Thanks, Mister ChatGPT)* 🙃
 
+**tweener.is_paused**
+---
+```lua
+tweener.is_paused(tween)
+```
+
+This function returns `true` if the tween is paused, `false` otherwise.
+
+- **Parameters:**
+  - `tween`: The tween object to check. It returned from `tweener.tween` function.
+
+- **Return Value:**
+  - `true` if the tween is paused, `false` otherwise.
+
+
+**tweener.set_pause**
+---
+```lua
+tweener.set_pause(tween, is_paused)
+```
+
+This function sets the pause state of the tween.
+
+- **Parameters:**
+  - `tween`: The tween object to set the pause state. It returned from `tweener.tween` function.
+  - `is_paused`: The new pause state.
+
+- **Return Value:**
+  - `true` if the tween was successfully paused, `false` otherwise.
+
+- **Usage Example:**
+
+```lua
+local tween = tweener.tween(tweener.linear, 0, 100, 1.5, function(value, is_final_call)
+	print("Tween value: " .. value)
+end)
+
+tweener.set_pause(tween, true)
+tweener.is_paused(tween) -- Returns true
+```
+
+
+**tweener.is_active**
+---
+```lua
+tweener.is_active(tween)
+```
+
+This function returns `true` if the tween is running, `false` is the tween is finished.
+
+- **Parameters:**
+  - `tween`: The tween object to check. It returned from `tweener.tween` function.
+
+- **Return Value:**
+  - `true` if the tween is running, `false` is the tween is finished.
+
+- **Usage Example:**
+
+```lua
+local tween = tweener.tween(tweener.linear, 0, 100, 1.5, function(value, is_final_call)
+	print("Tween value: " .. value)
+end)
+
+tweener.is_active(tween) -- Returns true
+-- Wait for 1.5 seconds
+tweener.is_active(tween) -- Returns false
+```
 
 ## Tween Functions
 
@@ -283,6 +356,12 @@ If you have any issues, questions or suggestions please [create an issue](https:
 - Add `tweener.cancel` function to cancel tweening instead of `timer.cancel` (For better API and README)
 - Code cleanup and better performance
 - Fix if total time is 0, then callback will be called immediately
+
+### **V5**
+- [Breaking]: `tweener.tween` now returns a tween object instead of a timer id. So if you used `timer.cancel` to cancel the tween, you need to use `tweener.cancel` instead.
+- Added `tweener.is_paused` function to check if a tween is paused
+- Added `tweener.is_active` function to check if a tween is active
+
 
 </details>
 

@@ -3,7 +3,7 @@ local tweener = require("tweener.tweener")
 function init(self)
 	local text_score = gui.get_node("text_score")
 
-	tweener.tween(gui.EASING_OUTCIRC, 0, 9999, 2.4, function(value, is_final_call)
+	local tween_text = tweener.tween(gui.EASING_OUTCIRC, 0, 9999, 2.4, function(value, is_final_call)
 		gui.set_text(text_score, "Score: " .. math.floor(value))
 
 		if is_final_call then
@@ -23,19 +23,25 @@ function init(self)
 
 	local current_time = socket.gettime()
 	local custom_easing = {0, 0.4, 0.5, 0.6, 0.5, 0.4, 0.5, 0.6, 1}
-	tweener.tween(custom_easing, 75, 885, 2.4, function(value, is_final_call)
+	local tween_box = tweener.tween(custom_easing, 75, 885, 2.4, function(value, is_final_call)
 		box_pos.x = value
 		gui.set_position(box, box_pos)
 
 		if is_final_call then
 			print("Tween took", socket.gettime() - current_time)
+			gui.set_scale(box, vmath.vector3(1.25, 1.25, 1))
+			gui.animate(box, "scale", vmath.vector3(1, 1, 1), gui.EASING_OUTBOUNCE, 0.5)
 		end
 	end)
 
-	timer.delay(2.4, false, function()
-		gui.set_scale(box, vmath.vector3(1.25, 1.25, 1))
-		gui.animate(box, "scale", vmath.vector3(1, 1, 1), gui.EASING_OUTBOUNCE, 0.5)
+	timer.delay(1, false, function()
+		tweener.set_pause(tween_box, true)
+		tweener.set_pause(tween_text, true)
 
-		print("Timer took", socket.gettime() - current_time)
+	end)
+
+	timer.delay(2, false, function()
+		tweener.set_pause(tween_box, false)
+		tweener.set_pause(tween_text, false)
 	end)
 end
