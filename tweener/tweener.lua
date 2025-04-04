@@ -1,11 +1,13 @@
 local UPDATE_FREQUENCY = sys.get_config_int("tweener.update_frequency", 60)
 
----Describe a struct of tween object returned by the `tween` function
+---Describe a struct of tween object returned by the `tweener.tween` function
 ---@class tween
 ---@field timer_id number The timer id handle from the `timer.delay` function
 ---@field is_paused boolean Whether the tween is paused
 
----A tweener module to manage tweening operations
+---A tweener module to manage tweening operations. Tween functions are based on the Defold timer.delay function.
+---Use `tweener.tween` to create a tween, and `tweener.ease` to get the result of an easing function.
+---You can track the final call of tween by last parameter of the callback function.
 ---@class tweener
 local M = {}
 
