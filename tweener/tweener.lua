@@ -25,7 +25,7 @@ local math_min = math.min
 ---@param from number The starting value to tween from
 ---@param to number The target value to tween to
 ---@param time number|nil The duration of the tween in seconds, default is 1
----@param callback fun(value: number, is_end: boolean) The callback function to call on each update
+---@param callback fun(value: number, is_end: boolean, time_elapsed: number, time_total: number) The callback function to call on each update
 ---@param update_delta_time number|nil Default is 1/60, the time between updates
 ---@return tween tween A new created tween state
 function M.tween(easing_function, from, to, time, callback, update_delta_time)
@@ -65,7 +65,7 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 		-- Cancel the tween if the time is zero from the start
 		if time <= 0 then
 			M.cancel(tween)
-			callback(to, true)
+			callback(to, true, time, time)
 			return
 		end
 
@@ -78,13 +78,13 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 		if time_elapsed >= time then
 			M.cancel(tween)
 			local value = easing_function(time, from, to - from, time)
-			callback(value, true)
+			callback(value, true, time, time)
 			return
 		end
 
 		-- Update the tween and call the callback
 		local value = easing_function(time_elapsed, from, to - from, time)
-		callback(value, false)
+		callback(value, false, time_elapsed, time)
 	end)
 
 	return tween
