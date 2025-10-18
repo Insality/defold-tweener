@@ -125,10 +125,10 @@ end
 
 
 ---Cancel a previous running tween.
----@param tween tween the tween handle returned by `tween` function
+---@param tween tween|nil the tween handle returned by `tween` function
 ---@return boolean true if the tween was active, false if the tween is already cancelled / complete
 function M.cancel(tween)
-	if not tween.timer_id then
+	if not (tween and tween.timer_id) then
 		return false
 	end
 
