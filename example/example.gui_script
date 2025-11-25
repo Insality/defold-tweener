@@ -1,5 +1,14 @@
 local tweener = require("tweener.tweener")
 
+local function start_looping_tween()
+	local looped_tween = tweener.tween(gui.EASING_OUTSINE, 0, 100, 1, function(value, is_final_call)
+		print("Looped tween value: " .. value)
+		if is_final_call then
+			start_looping_tween()
+		end
+	end)
+end
+
 function init(self)
 	local text_score = gui.get_node("text_score")
 
@@ -44,4 +53,6 @@ function init(self)
 		tweener.set_pause(tween_box, false)
 		tweener.set_pause(tween_text, false)
 	end)
+
+	start_looping_tween()
 end

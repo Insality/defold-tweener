@@ -1,11 +1,13 @@
 local UPDATE_FREQUENCY = sys.get_config_int("tweener.update_frequency", 60)
 
----Describe a struct of tween object returned by the `tween` function
+---Describe a struct of tween object returned by the `tweener.tween` function
 ---@class tween
 ---@field timer_id number The timer id handle from the `timer.delay` function
 ---@field is_paused boolean Whether the tween is paused
 
----A tweener module to manage tweening operations
+---A tweener module to manage tweening operations. Tween functions are based on the Defold timer.delay function.
+---Use `tweener.tween` to create a tween, and `tweener.ease` to get the result of an easing function.
+---You can track the final call of tween by last parameter of the callback function.
 ---@class tweener
 local M = {}
 
@@ -23,7 +25,7 @@ local math_min = math.min
 ---@param from number The starting value to tween from
 ---@param to number The target value to tween to
 ---@param time number|nil The duration of the tween in seconds, default is 1
----@param callback fun(value: number, is_end: boolean) The callback function to call on each update
+---@param callback fun(value: number, is_end: boolean, time_elapsed: number, time_total: number) The callback function to call on each update
 ---@param update_delta_time number|nil Default is 1/60, the time between updates
 ---@return tween tween A new created tween state
 function M.tween(easing_function, from, to, time, callback, update_delta_time)
@@ -63,7 +65,7 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 		-- Cancel the tween if the time is zero from the start
 		if time <= 0 then
 			M.cancel(tween)
-			callback(to, true)
+			callback(to, true, time, time)
 			return
 		end
 
@@ -76,13 +78,13 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 		if time_elapsed >= time then
 			M.cancel(tween)
 			local value = easing_function(time, from, to - from, time)
-			callback(value, true)
+			callback(value, true, time, time)
 			return
 		end
 
 		-- Update the tween and call the callback
 		local value = easing_function(time_elapsed, from, to - from, time)
-		callback(value, false)
+		callback(value, false, time_elapsed, time)
 	end)
 
 	return tween
@@ -123,10 +125,10 @@ end
 
 
 ---Cancel a previous running tween.
----@param tween tween the tween handle returned by `tween` function
+---@param tween tween|nil the tween handle returned by `tween` function
 ---@return boolean true if the tween was active, false if the tween is already cancelled / complete
 function M.cancel(tween)
-	if not tween.timer_id then
+	if not (tween and tween.timer_id) then
 		return false
 	end
 
