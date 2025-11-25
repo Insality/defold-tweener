@@ -25,10 +25,10 @@
 
 Open your `game.project` file and add the following line to the dependencies field under the project section:
 
-**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip)**
+**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/6.zip)**
 
 ```
-https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip
+https://github.com/Insality/defold-tweener/archive/refs/tags/6.zip
 ```
 
 ### Library Size
@@ -96,7 +96,7 @@ This function initiates a tween operation immediately. Here's how to use it:
   - `from`: The starting value of the tween.
   - `to`: The ending value of the tween.
   - `time`: The duration of the tween, in seconds.
-  - `callback`: A `function(value, is_final_call)` that gets called upon each update of the tween.
+  - `callback`: A `function(value, is_final_call, time_elapsed, time_total)` that gets called upon each update of the tween.
   - `dt` (optional): The time interval for updating the tween, in seconds.
 
 - **Return Value:**
@@ -113,8 +113,9 @@ tweener.tween(go.EASING_OUTSINE, 0, 100, 1.5, function(value, is_final_call)
 	print("Tween value: " .. value)
 end)
 
-local tween = tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call)
+local tween = tweener.tween({0, 0.2, 0.4, 0.8, 0.9, 1}, 0, 100, 1.5, function(value, is_final_call, time_elapsed, time_total)
 	print("Tween value: " .. value)
+	print("Time elapsed: " .. time_elapsed .. " from " .. time_total .. " seconds")
 end)
 
 -- You can cancel the tween by calling tweener.cancel
@@ -154,7 +155,7 @@ print("The tween value at halfway point is: ", value)
 **tweener.cancel**
 ---
 ```lua
-tweener.cancel(tween)
+tweener.cancel([tween])
 ```
 
 This function cancels the tween with the given `tween` object.
@@ -363,6 +364,9 @@ If you have any issues, questions or suggestions please [create an issue](https:
 - Added `tweener.is_paused` function to check if a tween is paused
 - Added `tweener.is_active` function to check if a tween is active
 
+### **V6**
+- Add `time_elapsed` and `time_total` parameters to the tween callback function
+- The `tweener.cancel` now can be called with a `nil` object to escape the additional `if` check
 
 </details>
 
