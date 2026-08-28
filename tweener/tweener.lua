@@ -439,7 +439,7 @@ local function inelastic(t, b, c, d, a, p)
 	end
 
 	if not p then
-		p = d * 0.
+		p = d * 0.3
 	end
 
 	local s
