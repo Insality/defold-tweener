@@ -37,3 +37,15 @@ embedded_instances {
     z: 1.0
   }
 }
+embedded_instances {
+  id: "owner"
+  data: "components {\n"
+  "  id: \"script\"\n"
+  "  component: \"/test/tween_owner.script\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"gui\"\n"
+  "  component: \"/test/tween_owner.gui\"\n"
+  "}\n"
+  ""
+}
