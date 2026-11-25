@@ -1,0 +1,10 @@
+name: "bench"
+scale_along_z: 0
+embedded_instances {
+  id: "bench"
+  data: "components {\n"
+  "  id: \"bench\"\n"
+  "  component: \"/bench/bench.script\"\n"
+  "}\n"
+  ""
+}

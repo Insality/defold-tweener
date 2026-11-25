@@ -1,0 +1,183 @@
+-- Tweener benchmark: per tween allocations, per update cost, ease cost. Prints [BENCH] lines, use a debug engine:
+-- java -jar bob.jar --settings bench/bench.ini -o build/bench --variant debug build
+-- dmengine build/bench/game.projectc
+local tweener = require("tweener.tweener")
+
+local CREATE_COUNT = 5000
+local RUN_COUNT = 1000
+local RUN_FRAMES = 600
+local EASE_COUNT = 100000
+
+local callback_count = 0
+
+local function on_tween_update(value, is_end)
+	callback_count = callback_count + 1
+end
+
+
+local function wait_frame(self)
+	self.is_waiting = true
+	coroutine.yield()
+end
+
+
+local function wait_frames(self, count)
+	for _ = 1, count do
+		wait_frame(self)
+	end
+end
+
+
+local function bench_create_cancel(name, easing)
+	local tweens = {}
+	for index = 1, CREATE_COUNT do
+		tweens[index] = false
+	end
+
+	collectgarbage("collect")
+	collectgarbage("stop")
+
+	local kb_start = collectgarbage("count")
+	local time_start = socket.gettime()
+	for index = 1, CREATE_COUNT do
+		tweens[index] = tweener.tween(easing, 0, 1, 10, on_tween_update)
+	end
+	local time_create = socket.gettime() - time_start
+	local kb_create = collectgarbage("count") - kb_start
+
+	kb_start = collectgarbage("count")
+	time_start = socket.gettime()
+	for index = 1, CREATE_COUNT do
+		tweener.cancel(tweens[index])
+	end
+	local time_cancel = socket.gettime() - time_start
+	local kb_cancel = collectgarbage("count") - kb_start
+
+	collectgarbage("restart")
+	print(string.format("[BENCH] create %-7s x%d: %8.1f KB (%5.0f B/tween) %6.2f ms | cancel: %6.1f KB %6.2f ms",
+		name, CREATE_COUNT, kb_create, kb_create * 1024 / CREATE_COUNT, time_create * 1000, kb_cancel, time_cancel * 1000))
+end
+
+
+local function bench_ease()
+	local sum = 0
+	collectgarbage("collect")
+	collectgarbage("stop")
+	local kb_start = collectgarbage("count")
+	local time_start = socket.gettime()
+	for index = 1, EASE_COUNT do
+		sum = sum + tweener.ease(go.EASING_OUTSINE, 0, 1, 1, index / EASE_COUNT)
+	end
+	local time_ease = socket.gettime() - time_start
+	local kb_ease = collectgarbage("count") - kb_start
+	collectgarbage("restart")
+	print(string.format("[BENCH] ease x%d: %.1f KB, %.3f us/call", EASE_COUNT, kb_ease, time_ease * 1000000 / EASE_COUNT))
+	return sum
+end
+
+
+---Call each tween update with timer.trigger: the same engine call path as a timer tick, without the frame noise
+local function bench_trigger()
+	local tweens = {}
+	for index = 1, RUN_COUNT do
+		tweens[index] = tweener.tween(go.EASING_OUTSINE, 0, 1, 1000, on_tween_update)
+	end
+
+	local best_time = math.huge
+	for _ = 1, 10 do
+		local time_start = socket.gettime()
+		for _ = 1, 20 do
+			for index = 1, RUN_COUNT do
+				timer.trigger(tweens[index].timer_id)
+			end
+		end
+		best_time = math.min(best_time, socket.gettime() - time_start)
+	end
+
+	for index = 1, RUN_COUNT do
+		tweener.cancel(tweens[index])
+	end
+	print(string.format("[BENCH] trigger x%d: %.3f us/update (best of 10)", RUN_COUNT, best_time * 1000000 / (20 * RUN_COUNT)))
+end
+
+
+---Measure the timer phase between two marker timers: the first marker is created before the tweens, the last after
+local function bench_run(self, name, start_tweens, stop_tweens)
+	local stats = { kb = 0, time = 0, frames = 0, callbacks = 0 }
+	local kb_start, time_start, callbacks_start = 0, 0, 0
+	local is_measuring = false
+
+	local marker_start = timer.delay(0, true, function()
+		kb_start = collectgarbage("count")
+		time_start = socket.gettime()
+		callbacks_start = callback_count
+	end)
+	start_tweens()
+	local marker_end = timer.delay(0, true, function()
+		if is_measuring then
+			stats.kb = stats.kb + collectgarbage("count") - kb_start
+			stats.time = stats.time + socket.gettime() - time_start
+			stats.callbacks = stats.callbacks + callback_count - callbacks_start
+			stats.frames = stats.frames + 1
+		end
+	end)
+
+	wait_frames(self, 5)
+	collectgarbage("collect")
+	collectgarbage("stop")
+	is_measuring = true
+	wait_frames(self, RUN_FRAMES)
+	is_measuring = false
+	collectgarbage("restart")
+
+	timer.cancel(marker_start)
+	timer.cancel(marker_end)
+	stop_tweens()
+	wait_frames(self, 2)
+
+	print(string.format("[BENCH] run %s x%d: %.1f B/callback, %.2f us/callback, %.1f callbacks/frame, %d frames",
+		name, RUN_COUNT, stats.kb * 1024 / stats.callbacks, stats.time * 1000000 / stats.callbacks, stats.callbacks / stats.frames, stats.frames))
+end
+
+
+---Run the per-frame bench first: the timer array keeps creation order only before any timer is removed
+local function run_benchmarks(self)
+	local tweens = {}
+	bench_run(self, "tweens", function()
+		for index = 1, RUN_COUNT do
+			tweens[index] = tweener.tween(go.EASING_OUTSINE, 0, 1, 1000, on_tween_update)
+		end
+	end, function()
+		for index = 1, RUN_COUNT do
+			tweener.cancel(tweens[index])
+		end
+	end)
+
+	bench_create_cancel("const", go.EASING_OUTSINE)
+	bench_create_cancel("string", "outsine")
+	bench_create_cancel("table", { 0, 0.2, 0.7, 1 })
+	bench_ease()
+	bench_trigger()
+
+	print("[BENCH] done")
+	os.exit(0)
+end
+
+
+function init(self)
+	self.is_waiting = false
+	self.co = coroutine.create(run_benchmarks)
+	assert(coroutine.resume(self.co, self))
+end
+
+
+function update(self, dt)
+	if self.is_waiting then
+		self.is_waiting = false
+		local is_ok, error_message = coroutine.resume(self.co, self)
+		if not is_ok then
+			print("[BENCH] error", error_message)
+			os.exit(1)
+		end
+	end
+end
