@@ -1,0 +1,15 @@
+local tweener = require("tweener.tweener")
+local tween_owner = require("test.tween_owner")
+
+function on_message(self, message_id, message)
+	if message_id == hash("start") then
+		local state = tween_owner.gui
+		tweener.tween(gui.EASING_LINEAR, 0, 100, message.time, function(value, is_end)
+			-- gui.* works only in the context of this gui script
+			gui.get_width()
+			state.count = state.count + 1
+			state.last_value = value
+			state.is_end = is_end
+		end)
+	end
+end

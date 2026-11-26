@@ -1,8 +1,14 @@
 local deftest = require("deftest.deftest")
+local test_wait = require("test.test_wait")
 
 function init(self)
 	deftest.add(require("test.test_tweener"))
 
-	local is_report = sys.get_config("test.report") == "1"
+	local is_report = sys.get_config_int("test.report", 0) == 1
 	deftest.run({ coverage = { enabled = is_report } })
+end
+
+
+function update(self, dt)
+	test_wait.update()
 end

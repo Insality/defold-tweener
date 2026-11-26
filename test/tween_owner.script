@@ -1,0 +1,19 @@
+local tweener = require("tweener.tweener")
+local tween_owner = require("test.tween_owner")
+
+function on_message(self, message_id, message)
+	if message_id == hash("start") then
+		local state = tween_owner.script
+		tweener.tween(go.EASING_LINEAR, 0, 100, message.time, function(value, is_end)
+			-- go.* without url works only in the context of this game object script
+			go.get_position()
+			state.count = state.count + 1
+			state.last_value = value
+			state.is_end = is_end
+		end)
+	end
+
+	if message_id == hash("delete") then
+		go.delete()
+	end
+end

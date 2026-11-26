@@ -4,6 +4,12 @@ local UPDATE_FREQUENCY = sys.get_config_int("tweener.update_frequency", 60)
 ---@class tween
 ---@field timer_id number The timer id handle from the `timer.delay` function
 ---@field is_paused boolean Whether the tween is paused
+---@field package easing_function fun(current: number, from: number, to: number, time: number): number
+---@field package from number
+---@field package to number
+---@field package time number
+---@field package time_elapsed number
+---@field package latest_time number
 
 ---A tweener module to manage tweening operations. Tween functions are based on the Defold timer.delay function.
 ---Use `tweener.tween` to create a tween, and `tweener.ease` to get the result of an easing function.
@@ -46,45 +52,21 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 		easing_function = custom_easing
 	end
 
-	-- Create the tween object
-	local time_elapsed = 0
-	local latest_time = socket.gettime()
+	-- Create the tween object. Keep the state here: one table field is cheaper than one closure upvalue
 	local tween = {
 		timer_id = nil,
-		is_paused = false
+		is_paused = false,
+		easing_function = easing_function,
+		from = from,
+		to = to,
+		time = time,
+		time_elapsed = 0,
+		latest_time = socket.gettime(),
 	}
 
-	-- Create the timer
-	tween.timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
-		-- If the tween is paused, update the latest time and return
-		if tween.is_paused then
-			latest_time = socket.gettime()
-			return
-		end
-
-		-- Cancel the tween if the time is zero from the start
-		if time <= 0 then
-			M.cancel(tween)
-			callback(to, true, time, time)
-			return
-		end
-
-		-- Update the time elapsed
-		local current_time = socket.gettime()
-		time_elapsed = time_elapsed + (current_time - latest_time)
-		latest_time = current_time
-
-		-- If the tween is finished, cancel it and call the callback
-		if time_elapsed >= time then
-			M.cancel(tween)
-			local value = easing_function(time, from, to - from, time)
-			callback(value, true, time, time)
-			return
-		end
-
-		-- Update the tween and call the callback
-		local value = easing_function(time_elapsed, from, to - from, time)
-		callback(value, false, time_elapsed, time)
+	-- Create the timer. The callback stays in the closure to keep the tween table at 8 fields
+	tween.timer_id = timer.delay(update_delta_time, true, function()
+		M._update_tween(tween, callback)
 	end)
 
 	return tween
@@ -152,6 +134,45 @@ end
 ---@param is_paused boolean the tween paused state
 function M.set_pause(tween, is_paused)
 	tween.is_paused = is_paused
+end
+
+
+---@private
+---@param tween tween
+---@param callback fun(value: number, is_end: boolean, time_elapsed: number, time_total: number)
+function M._update_tween(tween, callback)
+	-- If the tween is paused, update the latest time and return
+	if tween.is_paused then
+		tween.latest_time = socket.gettime()
+		return
+	end
+
+	-- Cancel the tween if the time is zero from the start
+	local time = tween.time
+	if time <= 0 then
+		M.cancel(tween)
+		callback(tween.to, true, time, time)
+		return
+	end
+
+	-- Update the time elapsed
+	local current_time = socket.gettime()
+	local time_elapsed = tween.time_elapsed + (current_time - tween.latest_time)
+	tween.time_elapsed = time_elapsed
+	tween.latest_time = current_time
+
+	-- If the tween is finished, cancel it and call the callback
+	local from = tween.from
+	if time_elapsed >= time then
+		M.cancel(tween)
+		local value = tween.easing_function(time, from, tween.to - from, time)
+		callback(value, true, time, time)
+		return
+	end
+
+	-- Update the tween and call the callback
+	local value = tween.easing_function(time_elapsed, from, tween.to - from, time)
+	callback(value, false, time_elapsed, time)
 end
 
 
