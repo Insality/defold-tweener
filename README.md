@@ -25,10 +25,10 @@
 
 Open your `game.project` file and add the following line to the dependencies field under the project section:
 
-**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/6.zip)**
+**[Tweener](https://github.com/Insality/defold-tweener/archive/refs/tags/7.zip)**
 
 ```
-https://github.com/Insality/defold-tweener/archive/refs/tags/6.zip
+https://github.com/Insality/defold-tweener/archive/refs/tags/7.zip
 ```
 
 ### Library Size
@@ -367,6 +367,12 @@ If you have any issues, questions or suggestions please [create an issue](https:
 ### **V6**
 - Add `time_elapsed` and `time_total` parameters to the tween callback function
 - The `tweener.cancel` now can be called with a `nil` object to escape the additional `if` check
+
+### **V7**
+- Fix `inelastic` easing returning `nan`: its default period was zero
+- Fewer allocations per tween: the tween state lives in the tween table, not in closure upvalues (about 28% less memory per tween)
+- Tween lifecycle tests, test runner fixed for Defold 1.14
+- Tweener benchmark: `bench/bench.collection`
 
 </details>
 

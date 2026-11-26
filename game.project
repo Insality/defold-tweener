@@ -13,7 +13,7 @@ input_method = HiddenInputField
 
 [project]
 title = Defold Tweener
-version = 1
+version = 7
 publisher = Insality
 developer = Maksim Tuprikov, Insality
 dependencies#0 = https://github.com/britzl/deftest/archive/refs/tags/2.8.0.zip
